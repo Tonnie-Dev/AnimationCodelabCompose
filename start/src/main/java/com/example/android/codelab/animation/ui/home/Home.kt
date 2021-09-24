@@ -16,28 +16,8 @@
 
 package com.example.android.codelab.animation.ui.home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.calculateTargetValue
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.splineBasedDecay
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -194,8 +174,6 @@ fun Home() {
     )
 
 
-
-
     // The coroutine scope for event handlers calling suspend functions.
     val coroutineScope = rememberCoroutineScope()
     Scaffold(
@@ -307,7 +285,6 @@ private fun HomeFloatingActionButton(
             )
 
 
-
             // Toggle the visibility of the content with animation.
             // TODO 2-1: Animate this visibility change.
             AnimatedVisibility(extended) {
@@ -324,14 +301,27 @@ private fun HomeFloatingActionButton(
 /**
  * Shows a message that the edit feature is not available.
  */
+
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun EditMessage(shown: Boolean) {
-    // TODO 2-2: The message should slide down from the top on appearance and slide up on
-    //           disappearance.
+    // TODO 2-2: The message should slide down from the top on appearance and
+    //           slide up on disappearance.
+
     AnimatedVisibility(
-        visible = shown
+        visible = shown,
+
+        enter = slideInVertically( initialOffsetY = {fullHeight ->  -fullHeight},
+        animationSpec = tween(durationMillis = 150, easing = LinearOutSlowInEasing)),
+
+        exit = slideOutVertically(targetOffsetY = {fullHeight -> -fullHeight  },
+        animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing))
     ) {
+
+
+
+
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colors.secondary,
@@ -403,7 +393,7 @@ private fun TopicRow(topic: String, expanded: Boolean, onClick: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp).animateContentSize()
         ) {
             Row {
                 Icon(
@@ -484,9 +474,20 @@ private fun HomeTabIndicator(
     tabPage: TabPage
 ) {
     // TODO 4: Animate these value changes.
-    val indicatorLeft = tabPositions[tabPage.ordinal].left
-    val indicatorRight = tabPositions[tabPage.ordinal].right
-    val color = if (tabPage == TabPage.Home) Purple700 else Green800
+   // val indicatorLeft = tabPositions[tabPage.ordinal].left
+    //val indicatorRight = tabPositions[tabPage.ordinal].right
+  //  val color = if (tabPage == TabPage.Home) Purple700 else Green800
+
+    val transition = updateTransition(tabPage)
+    val indicatorLeft by transition.animateDp { page ->
+        tabPositions[page.ordinal].left
+    }
+    val indicatorRight by transition.animateDp { page ->
+        tabPositions[page.ordinal].right
+    }
+    val color by transition.animateColor { page ->
+        if (page == TabPage.Home) Purple700 else Green800
+    }
     Box(
         Modifier
             .fillMaxSize()
@@ -689,6 +690,18 @@ private fun PreviewHomeTabBar() {
 @Preview
 @Composable
 private fun PreviewHome() {
+
+    val spring by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessVeryLow
+        )
+    )
+
+
+
+
     AnimationCodelabTheme {
         Home()
     }
